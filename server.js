@@ -21,12 +21,10 @@ const HTTP_ONLINE_TIMEOUT_MS = 10000; // ถือว่า Online หากม�
 // ==================== ระบบจัดเก็บข้อมูล (JSON Database) ====================
 function createDefaultWidgets() {
   return [
-    { id: 'w-v0', pin: 'V0', type: 'switch', label: 'ไฟ LED บนบอร์ด (LED_BUILTIN)', unit: '', min: 0, max: 1 },
-    { id: 'w-v1', pin: 'V1', type: 'switch', label: 'Relay / ไฟขา D2', unit: '', min: 0, max: 1 },
-    { id: 'w-v2', pin: 'V2', type: 'slider', label: 'ปรับความสว่าง PWM (ขา D1)', unit: '', min: 0, max: 1023 },
-    { id: 'w-v3', pin: 'V3', type: 'gauge', label: 'อุณหภูมิ (Temperature)', unit: '°C', min: 0, max: 50 },
-    { id: 'w-v4', pin: 'V4', type: 'gauge', label: 'ความชื้น (Humidity)', unit: '%', min: 0, max: 100 },
-    { id: 'w-v5', pin: 'V5', type: 'gauge', label: 'เซนเซอร์ Analog (ขา A0)', unit: '', min: 0, max: 1023 }
+    { id: 'w-v0', pin: 'V0', type: 'switch', label: 'LED ดวงที่ 1 (ขา D5)', unit: '', min: 0, max: 1 },
+    { id: 'w-v1', pin: 'V1', type: 'switch', label: 'LED ดวงที่ 2 (ขา D6)', unit: '', min: 0, max: 1 },
+    { id: 'w-v2', pin: 'V2', type: 'switch', label: 'LED ดวงที่ 3 (ขา D7)', unit: '', min: 0, max: 1 },
+    { id: 'w-v3', pin: 'V3', type: 'switch', label: 'โหมดไฟวิ่งอัตโนมัติ (D5 → D6 → D7)', unit: '', min: 0, max: 1 }
   ];
 }
 
@@ -35,16 +33,12 @@ function createInitialDb() {
     devices: [
       {
         id: 'dev-esp8266-demo',
-        name: 'ESP8266 Lab Board',
-        board: 'ESP8266 (NodeMCU / Wemos D1)',
+        name: 'ESP8266 3-LED Board',
+        board: 'ESP8266 (D5, D6, D7)',
         token: 'esp8266_demo_token_1234',
-        pins: { V0: 0, V1: 0, V2: 0, V3: 27.5, V4: 60.0, V5: 512 },
+        pins: { V0: 0, V1: 0, V2: 0, V3: 0 },
         widgets: createDefaultWidgets(),
-        history: {
-          V3: [],
-          V4: [],
-          V5: []
-        },
+        history: {},
         createdAt: new Date().toISOString()
       }
     ]
