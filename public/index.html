@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MiniBlynk IoT Server — ESP8266 Dashboard</title>
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-logo">B</div>
+        <div>
+          <h1>MiniBlynk IoT</h1>
+          <span class="subtitle">Self-Hosted Server สำหรับเรียน IoT</span>
+        </div>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="section-header">
+          <span>อุปกรณ์ของฉัน (Devices)</span>
+          <button id="btnAddDevice" class="btn-icon" title="เพิ่มอุปกรณ์ใหม่">+</button>
+        </div>
+        <div id="deviceList" class="device-list"></div>
+      </div>
+
+      <div class="sidebar-section server-info-box">
+        <div class="section-header">
+          <span>ข้อมูล Server (สำหรับ ESP8266)</span>
+        </div>
+        <div id="serverIpList" class="ip-list">กำลังโหลด...</div>
+        <p class="hint-text">นำ IP ด้านบนไปใส่ในตัวแปร <code>SERVER_HOST</code> ในโค้ด ESP8266 (ต้องต่อ WiFi วงเดียวกัน)</p>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <header class="device-header" id="deviceHeader">
+        <div>
+          <div class="title-row">
+            <h2 id="activeDeviceName">กำลังโหลด...</h2>
+            <span id="activeDeviceStatus" class="status-pill offline">Offline</span>
+          </div>
+          <div class="meta-row">
+            <span id="activeDeviceBoard" class="meta-chip">ESP8266</span>
+            <div class="token-box">
+              <span class="token-label">AUTH TOKEN:</span>
+              <code id="activeDeviceToken">-</code>
+              <button id="btnCopyToken" class="btn-small">คัดลอก</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="header-actions">
+          <button id="btnSimToggle" class="btn-secondary">⚡ จำลองบอร์ด ESP8266</button>
+          <button id="btnAddWidget" class="btn-primary">+ เพิ่ม Widget</button>
+          <button id="btnDeleteDevice" class="btn-danger-ghost" title="ลบอุปกรณ์นี้">ลบ</button>
+        </div>
+      </header>
+
+      <!-- Widgets Grid -->
+      <section class="panel">
+        <div class="panel-header">
+          <h3>Virtual Pins Dashboard</h3>
+          <span class="panel-hint">คลิกควบคุมหรือดูค่าแบบ Real-time ผ่าน WebSocket / HTTP</span>
+        </div>
+        <div id="widgetGrid" class="widget-grid"></div>
+      </section>
+
+      <!-- Bottom Split: Live Chart & Protocol Inspector -->
+      <div class="bottom-grid">
+        <section class="panel">
+          <div class="panel-header">
+            <h3>กราฟค่าเซนเซอร์ย้อนหลัง (Real-time Chart)</h3>
+            <select id="chartPinSelect" class="select-input"></select>
+          </div>
+          <div id="chartContainer" class="chart-container">
+            <div class="empty-chart">ยังไม่มีข้อมูลเซนเซอร์ (ลองกด "จำลองบอร์ด ESP8266" หรือต่อบอร์ดจริง)</div>
+          </div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-header">
+            <h3>Protocol Inspector (Log การสื่อสาร)</h3>
+            <button id="btnClearLog" class="btn-small">ล้าง Log</button>
+          </div>
+          <div id="protocolLog" class="protocol-log"></div>
+          <div class="api-quick-box">
+            <div class="api-quick-title">ทดสอบยิง HTTP API (คล้าย Blynk REST API):</div>
+            <div class="api-quick-row">
+              <code id="httpExampleUrl">-</code>
+              <button id="btnCopyApi" class="btn-small">คัดลอก</button>
+            </div>
+          </div>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <!-- Modal: Add Device -->
+  <div id="modalDevice" class="modal hidden">
+    <div class="modal-card">
+      <h3>เพิ่มบอร์ด ESP8266 ใหม่</h3>
+      <form id="formAddDevice">
+        <label>ชื่ออุปกรณ์ (Device Name)
+          <input type="text" id="inputDeviceName" placeholder="เช่น ห้องนอน ESP8266 หรือ โครงงานรดน้ำต้นไม้" required />
+        </label>
+        <label>รุ่นบอร์ด (Board)
+          <input type="text" id="inputDeviceBoard" value="ESP8266 (NodeMCU / Wemos D1)" />
+        </label>
+        <div class="modal-actions">
+          <button type="button" class="btn-secondary" data-close="modalDevice">ยกเลิก</button>
+          <button type="submit" class="btn-primary">สร้างอุปกรณ์</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal: Add Widget -->
+  <div id="modalWidget" class="modal hidden">
+    <div class="modal-card">
+      <h3>เพิ่ม Widget ใหม่</h3>
+      <form id="formAddWidget">
+        <label>Virtual Pin (เช่น V6, V7, V10)
+          <input type="text" id="inputWidgetPin" placeholder="V6" pattern="[Vv][0-9]{1,2}" required />
+        </label>
+        <label>ประเภท Widget
+          <select id="inputWidgetType">
+            <option value="switch">ปุ่มเปิด-ปิด (Switch 0/1)</option>
+            <option value="slider">แถบเลื่อนปรับค่า (Slider)</option>
+            <option value="gauge">หน้าปัดแสดงค่าเซนเซอร์ (Gauge)</option>
+          </select>
+        </label>
+        <label>ชื่อแสดงผล (Label)
+          <input type="text" id="inputWidgetLabel" placeholder="เช่น ปั๊มน้ำ, ความชื้นในดิน" required />
+        </label>
+        <div class="form-row">
+          <label>ค่าต่ำสุด (Min)
+            <input type="number" id="inputWidgetMin" value="0" />
+          </label>
+          <label>ค่าสูงสุด (Max)
+            <input type="number" id="inputWidgetMax" value="100" />
+          </label>
+          <label>หน่วย (Unit)
+            <input type="text" id="inputWidgetUnit" placeholder="เช่น °C, %" />
+          </label>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn-secondary" data-close="modalWidget">ยกเลิก</button>
+          <button type="submit" class="btn-primary">เพิ่ม Widget</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div id="toast" class="toast hidden"></div>
+
+  <script src="/app.js"></script>
+</body>
+</html>

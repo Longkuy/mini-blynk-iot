@@ -1,0 +1,14 @@
+{
+  "name": "mini-blynk-iot-server",
+  "version": "1.0.0",
+  "description": "Self-hosted Blynk-like IoT Server for ESP8266 & IoT Learning",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "sim": "node simulator.js"
+  },
+  "dependencies": {
+    "express": "^4.21.2",
+    "ws": "^8.18.0"
+  }
+}
